@@ -1,0 +1,842 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ATL Homes — Job Cost Estimator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#0d1f35;--navy-mid:#1a3050;--navy-light:#24436b;
+  --sand:#c8a96e;--sand-light:#e8d5b0;
+  --white:#ffffff;--off-white:#faf8f5;
+  --green:#1a6b4a;--green-light:#e8f5ef;--green-mid:#2d9668;
+  --blue:#185fa5;--blue-light:#e6f1fb;
+  --text-primary:#0d1f35;--text-secondary:#4a5f78;--text-muted:#8496aa;
+  --border:#dde4ec;--border-light:#edf1f6;--surface:#f4f7fb;
+  --radius:10px;--radius-lg:14px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'DM Sans',sans-serif;background:var(--off-white);color:var(--text-primary);min-height:100vh;}
+
+.header{background:var(--navy);padding:0 2rem;display:flex;align-items:center;justify-content:space-between;height:56px;border-bottom:1px solid var(--navy-mid);}
+.logo{display:flex;align-items:center;gap:10px;}
+.logo-mark{width:32px;height:32px;background:var(--sand);border-radius:6px;display:flex;align-items:center;justify-content:center;}
+.logo-mark svg{width:18px;height:18px;}
+.logo-text{font-size:15px;font-weight:600;color:var(--white);letter-spacing:.02em;}
+.logo-sub{font-size:12px;color:var(--sand-light);font-weight:400;}
+.header-right{display:flex;align-items:center;gap:12px;}
+.save-indicator{font-size:12px;color:var(--sand-light);display:flex;align-items:center;gap:5px;opacity:0;transition:opacity .3s;}
+.save-indicator.show{opacity:1;}
+.save-dot{width:6px;height:6px;border-radius:50%;background:var(--green-mid);}
+.btn-hdr{font-family:'DM Sans',sans-serif;font-size:12px;color:var(--sand-light);background:transparent;border:1px solid rgba(200,169,110,.3);border-radius:6px;padding:5px 12px;cursor:pointer;transition:all .15s;}
+.btn-hdr:hover{background:rgba(200,169,110,.1);border-color:var(--sand);color:var(--sand);}
+
+.main{max-width:1100px;margin:0 auto;padding:2rem 1.5rem 8rem;}
+
+.settings-panel{background:var(--white);border:1px solid var(--border);border-radius:var(--radius-lg);padding:1.25rem 1.5rem;margin-bottom:1.5rem;}
+.panel-title{font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:1rem;}
+.settings-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;}
+.field{display:flex;flex-direction:column;gap:5px;}
+.field label{font-size:11px;font-weight:500;color:var(--text-secondary);letter-spacing:.02em;}
+.field input,.field select{font-family:'DM Sans',sans-serif;font-size:13px;color:var(--text-primary);background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:7px 10px;outline:none;transition:border-color .15s;appearance:none;-webkit-appearance:none;}
+.field input:focus,.field select:focus{border-color:var(--navy-light);background:var(--white);}
+.field select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238496aa' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 9px center;padding-right:28px;}
+
+/* Metrics */
+.metrics-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:1.5rem;}
+.metric-card{border-radius:var(--radius-lg);padding:1rem 1.25rem;position:relative;overflow:hidden;}
+.metric-card{background:var(--navy);}
+.metric-card .mlabel{color:var(--sand-light);}
+.metric-card .mval{color:var(--white);}
+.metric-card .mval-sub{color:#5dd4a0;}
+.metric-card .msub{color:rgba(200,169,110,.7);}
+.metric-card.accent{background:var(--sand);}
+.metric-card.accent .mlabel{color:rgba(13,31,53,.6);}
+.metric-card.accent .mval{color:var(--navy);}
+.metric-card.accent .mval-sub{color:rgba(13,31,53,.55);}
+.metric-card.accent .msub{color:rgba(13,31,53,.5);}
+.metric-card::before{content:'';position:absolute;top:0;right:0;width:60px;height:60px;background:rgba(200,169,110,.08);border-radius:50%;transform:translate(20px,-20px);}
+.metric-card .mlabel{font-size:11px;font-weight:500;letter-spacing:.04em;text-transform:uppercase;margin-bottom:6px;}
+.metric-card .mval{font-size:20px;font-weight:600;font-family:'DM Mono',monospace;letter-spacing:-.02em;}
+.metric-card .mval-sub{font-size:13px;font-weight:500;font-family:'DM Mono',monospace;margin-top:2px;}
+.metric-card .msub{font-size:11px;margin-top:3px;}
+@media(max-width:700px){.metrics-row{grid-template-columns:1fr 1fr;}}
+
+.stages-title{font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;}
+.stages-title span{font-size:12px;font-weight:400;color:var(--text-muted);text-transform:none;letter-spacing:0;}
+
+.stage-block{background:var(--white);border:1px solid var(--border);border-radius:var(--radius-lg);margin-bottom:10px;overflow:hidden;transition:border-color .15s;}
+.stage-block:hover{border-color:#c4d0de;}
+.stage-block.is-site{border-left:3px solid var(--blue);}
+.stage-block.is-mixed{border-left:3px solid var(--sand);}
+.stage-header{display:flex;align-items:center;gap:12px;padding:12px 16px;cursor:pointer;user-select:none;transition:background .1s;}
+.stage-header:hover{background:var(--surface);}
+.stage-num{width:24px;height:24px;border-radius:6px;background:var(--navy);color:var(--sand);font-size:11px;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:'DM Mono',monospace;}
+.stage-type-pill{font-size:10px;font-weight:600;padding:2px 7px;border-radius:99px;letter-spacing:.04em;text-transform:uppercase;flex-shrink:0;}
+.stage-type-pill.site{background:var(--blue-light);color:var(--blue);}
+.stage-type-pill.unit{background:var(--green-light);color:var(--green);}
+.stage-type-pill.mixed{background:#faeeda;color:#633806;}
+.stage-name{font-size:13px;font-weight:500;color:var(--text-primary);flex:1;}
+.stage-meta{display:flex;align-items:center;gap:12px;}
+.stage-prog{font-size:11px;color:var(--text-muted);}
+.stage-total{font-size:13px;font-weight:600;color:var(--text-primary);font-family:'DM Mono',monospace;min-width:90px;text-align:right;}
+.stage-chev{color:var(--text-muted);font-size:14px;transition:transform .2s;flex-shrink:0;}
+.stage-chev.open{transform:rotate(180deg);}
+.stage-progress-line{height:2px;background:var(--border-light);}
+.stage-progress-fill{height:2px;background:var(--green-mid);transition:width .4s ease;}
+.stage-body{display:none;}
+.stage-body.open{display:block;}
+
+/* Table */
+.items-table{width:100%;border-collapse:collapse;table-layout:fixed;}
+.items-table thead tr.hdr-top th{font-size:10px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;padding:6px 8px 2px;background:var(--surface);border-top:1px solid var(--border-light);text-align:center;}
+.items-table thead tr.hdr-top th.col-drag{width:30px;background:var(--surface);}
+.items-table thead tr.hdr-top th.col-name{text-align:left;}
+.items-table thead tr.hdr-top th.col-act{width:36px;background:var(--surface);}
+.items-table thead tr.hdr-top th.th-est{border-left:1px solid var(--border-light);background:#f0f4f9;}
+.items-table thead tr.hdr-top th.th-quote{border-left:2px solid var(--border);background:#f0f6f2;}
+.items-table thead tr.hdr-sub th{font-size:10px;font-weight:500;color:var(--text-muted);padding:2px 8px 6px;background:var(--surface);border-bottom:1px solid var(--border-light);text-align:right;}
+.items-table thead tr.hdr-sub th.col-drag,.items-table thead tr.hdr-sub th.col-name,.items-table thead tr.hdr-sub th.col-act{background:var(--surface);}
+.items-table thead tr.hdr-sub th.sub-est{border-left:1px solid var(--border-light);background:#f0f4f9;text-align:center;}
+.items-table thead tr.hdr-sub th.sub-q{border-left:2px solid var(--border);background:#f0f6f2;text-align:center;}
+.items-table tbody tr{border-bottom:1px solid var(--border-light);transition:background .1s;}
+.items-table tbody tr:last-child{border-bottom:none;}
+.items-table tbody tr:hover{background:var(--surface);}
+.items-table tbody tr.is-quoted{background:var(--green-light);}
+.items-table tbody tr.is-quoted:hover{background:#ddf0ea;}
+.items-table tbody tr.drag-over{border-top:2px solid var(--sand);}
+.items-table tbody tr.dragging{opacity:.4;}
+.items-table td{padding:7px 8px;font-size:12px;color:var(--text-primary);vertical-align:middle;}
+.items-table td.col-drag{cursor:grab;color:var(--text-muted);font-size:15px;user-select:none;width:30px;padding:7px 2px 7px 8px;}
+.items-table td.col-drag:active{cursor:grabbing;}
+.items-table td.col-act{text-align:center;width:36px;}
+.items-table td.td-est{border-left:1px solid var(--border-light);background:rgba(240,244,249,.4);}
+.items-table td.td-quote{border-left:2px solid var(--border);background:rgba(240,246,242,.4);}
+.items-table tr.is-quoted td.td-quote{background:rgba(200,234,219,.3);}
+
+/* Row type badge */
+.row-type{font-size:9px;font-weight:600;padding:1px 5px;border-radius:99px;letter-spacing:.04em;text-transform:uppercase;flex-shrink:0;}
+.row-type.site{background:var(--blue-light);color:var(--blue);}
+.row-type.unit{background:var(--green-light);color:var(--green);}
+
+.item-name-wrap{display:flex;align-items:center;gap:5px;flex-wrap:wrap;}
+.tag{font-size:10px;font-weight:600;padding:1px 5px;border-radius:99px;letter-spacing:.03em;text-transform:uppercase;}
+.tag-actual{background:#dde8f8;color:#1a3a7c;}
+.tag-custom{background:#e8d5b0;color:#6b4c0a;}
+.tag-quoted{background:#c8eadb;color:var(--green);}
+
+.cell-group{display:flex;flex-direction:column;align-items:flex-end;gap:1px;}
+.cell-row{display:flex;align-items:center;gap:3px;}
+.cell-total{font-family:'DM Mono',monospace;font-size:12px;font-weight:500;color:var(--text-primary);text-align:right;min-width:80px;}
+.cell-total.is-green{color:var(--green);}
+.fi{font-family:'DM Mono',monospace;font-size:11px;background:transparent;border:none;border-bottom:1px dashed var(--border);border-radius:0;padding:2px 3px;text-align:right;outline:none;color:var(--text-secondary);transition:border-color .15s,background .15s;}
+.fi:hover{border-bottom-color:var(--navy-light);background:rgba(13,31,53,.03);}
+.fi:focus{border-bottom-color:var(--navy);background:rgba(13,31,53,.05);color:var(--text-primary);}
+.fi.fi-qty{width:50px;}
+.fi.fi-rate{width:62px;}
+.fi.fi-total{width:80px;}
+.fi.fi-green{color:var(--green);}
+.fi.fi-green::placeholder{color:var(--text-muted);}
+.fi-sep{font-size:11px;color:var(--text-muted);}
+.variance{font-size:10px;font-weight:600;padding:1px 5px;border-radius:99px;margin-top:1px;align-self:flex-end;}
+.variance.over{background:#fde8e8;color:#a32d2d;}
+.variance.under{background:#e8f5ef;color:#1a6b4a;}
+
+.btn-remove-item{background:none;border:none;cursor:pointer;color:var(--text-muted);font-size:15px;padding:0 2px;line-height:1;transition:color .15s;}
+.btn-remove-item:hover{color:#c0392b;}
+.add-item-row{display:flex;align-items:center;gap:8px;padding:8px 16px;border-top:1px solid var(--border-light);background:var(--surface);}
+.add-item-input{font-family:'DM Sans',sans-serif;font-size:13px;color:var(--text-primary);background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:6px 10px;flex:1;outline:none;transition:border-color .15s;}
+.add-item-input:focus{border-color:var(--navy-light);}
+.add-item-input::placeholder{color:var(--text-muted);}
+.btn-add-item{font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;color:var(--navy);background:var(--sand);border:none;border-radius:var(--radius);padding:6px 14px;cursor:pointer;white-space:nowrap;transition:background .15s;}
+.btn-add-item:hover{background:#b8942e;color:var(--white);}
+
+.stage-footer{display:flex;justify-content:space-between;align-items:center;padding:8px 16px;background:var(--surface);border-top:1px solid var(--border-light);font-size:12px;}
+.sf-group{display:flex;gap:16px;align-items:center;}
+.sf-label{font-size:11px;color:var(--text-muted);}
+.sf-val{font-family:'DM Mono',monospace;font-size:13px;font-weight:600;color:var(--text-primary);}
+.sf-val.green{color:var(--green);}
+.sf-variance{font-size:11px;font-weight:600;}
+.sf-variance.over{color:#a32d2d;}
+.sf-variance.under{color:#1a6b4a;}
+
+/* Running total */
+.running-total{position:fixed;bottom:0;left:0;right:0;background:var(--navy);border-top:2px solid var(--sand);padding:10px 2rem;z-index:100;}
+.rt-inner{max-width:1100px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr);gap:0;align-items:center;}
+.rt-cell{padding:0 16px;border-right:1px solid rgba(255,255,255,.1);}
+.rt-cell:first-child{padding-left:0;}
+.rt-cell:last-child{border-right:none;}
+.rt-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;margin-bottom:1px;}
+.rt-val{font-size:18px;font-weight:600;font-family:'DM Mono',monospace;letter-spacing:-.02em;}
+.rt-sub{font-size:11px;color:rgba(200,169,110,.6);margin-top:1px;}
+.rt-bar-wrap{height:2px;background:rgba(255,255,255,.1);border-radius:1px;margin-top:5px;overflow:hidden;}
+.rt-bar-fill{height:2px;background:#5dd4a0;border-radius:1px;transition:width .4s ease;}
+@media(max-width:640px){
+  .main{padding:1rem 1rem 9rem;}
+  .header{padding:0 1rem;}
+  .rt-inner{grid-template-columns:repeat(2,1fr);gap:6px;}
+  .rt-cell{border-right:none;padding:0 4px;}
+  .running-total{padding:8px 1rem;}
+}
+</style>
+</head>
+<body>
+<header class="header">
+  <div class="logo">
+    <div class="logo-mark"><svg viewBox="0 0 18 18" fill="none"><path d="M9 2L2 8v8h5v-5h4v5h5V8L9 2z" fill="#0d1f35"/></svg></div>
+    <div>
+      <div class="logo-text">ATL Homes</div>
+      <div class="logo-sub">Job Cost Estimator</div>
+    </div>
+  </div>
+  <div class="header-right">
+    <div class="save-indicator" id="save-indicator"><div class="save-dot"></div>Saved</div>
+    <button class="btn-hdr" onclick="resetAll()">↺ Reset</button>
+  </div>
+</header>
+
+<main class="main">
+  <div class="settings-panel">
+    <div class="panel-title">Project settings</div>
+    <div class="settings-grid">
+      <div class="field"><label>Number of units</label><input type="number" id="units" value="4" min="1" max="20"></div>
+      <div class="field"><label>Floor area per unit (m²)</label><input type="number" id="gfa" value="160" min="50" max="600"></div>
+      <div class="field"><label>Storeys per unit</label>
+        <select id="storeys">
+          <option value="1">1 storey</option>
+          <option value="2" selected>2 storeys</option>
+          <option value="3">3 storeys</option>
+        </select>
+      </div>
+      <div class="field"><label>Foundation type</label>
+        <select id="foundation">
+          <option value="stump" selected>Concrete stumps</option>
+          <option value="slab">Slab on ground</option>
+          <option value="both">Mixed (stumps + slab)</option>
+        </select>
+      </div>
+      <div class="field"><label>State</label>
+        <select id="state">
+          <option value="1.05" selected>VIC</option>
+          <option value="1.10">NSW</option>
+          <option value="0.97">QLD</option>
+          <option value="0.95">SA</option>
+          <option value="1.08">WA</option>
+        </select>
+      </div>
+      <div class="field"><label>Site difficulty</label>
+        <select id="site">
+          <option value="1.0" selected>Standard flat</option>
+          <option value="1.08">Slight slope</option>
+          <option value="1.18">Steep / complex</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <div class="metrics-row" id="metrics"></div>
+
+  <div class="stages-title">
+    Stage breakdown
+    <span>
+      <span style="display:inline-flex;align-items:center;gap:4px;margin-right:10px"><span style="width:10px;height:10px;border-radius:50%;background:var(--blue);display:inline-block"></span> site cost</span>
+      <span style="display:inline-flex;align-items:center;gap:4px;margin-right:10px"><span style="width:10px;height:10px;border-radius:50%;background:var(--green-mid);display:inline-block"></span> per unit</span>
+      <span style="display:inline-flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:50%;background:var(--sand);display:inline-block"></span> mixed</span>
+    </span>
+  </div>
+  <div id="stages-container"></div>
+</main>
+
+<div class="running-total">
+  <div class="rt-inner" id="running-total"></div>
+</div>
+
+<script>
+// bucket: 'site' | 'unit'
+// foundationTypes: optional array of foundation values that show this item
+const STAGE_DEFS = [
+  { id:'s0', num:'01', name:'Plans, permits & pre-build fees', bucket:'site', items:[
+    { name:'Architect / building designer fees',          cost:()=>18000,              src:'actual', bucket:'site', noMult:true },
+    { name:'Town planning application & fees',            cost:()=>5000,               src:'est',    bucket:'site', noMult:true },
+    { name:'Council building permit',                     cost:()=>10000,              src:'actual', bucket:'site', noMult:true },
+    { name:'Engineering & soil reports',                  cost:()=>8000,               src:'actual', bucket:'site', noMult:true },
+    { name:'Energy rating report (NatHERS)',              cost:()=>1200,               src:'est',    bucket:'site', noMult:true },
+    { name:'Bushfire / BAL assessment (if required)',     cost:()=>1500,               src:'est',    bucket:'site', noMult:true },
+    { name:'Owners corporation setup (if applicable)',    cost:()=>4000,               src:'est',    bucket:'site', noMult:true },
+    { name:'Legal & conveyancing',                        cost:()=>3000,               src:'est',    bucket:'site', noMult:true },
+    { name:'Finance / broker fees',                       cost:()=>2000,               src:'est',    bucket:'site', noMult:true },
+    { name:'Contingency — pre-build (5%)',                cost:(p,sub)=>sub.site*0.05, src:'est',    bucket:'site', noMult:true },
+  ]},
+  { id:'s1', num:'02', name:'Site preparation & earthworks', bucket:'mixed', items:[
+    { name:'Surveyor — all stages (set-out, re-peg, final)', cost:()=>9000,       src:'est',    bucket:'site', noMult:true },
+    { name:'Demolition & site clearance',                 cost:()=>12000,         src:'est',    bucket:'site', noMult:true },
+    { name:'Temporary fencing & site establishment',      cost:()=>4000,          src:'est',    bucket:'site', noMult:true },
+    { name:'Bulk earthworks & excavation',                cost:()=>15000,         src:'est',    bucket:'site' },
+    { name:'Soil disposal & cartage',                     cost:()=>6000,          src:'est',    bucket:'site' },
+    { name:'Retaining walls (if required)',               cost:()=>20000,         src:'est',    bucket:'site' },
+    { name:'Stormwater main — pit & connection to council drain', cost:()=>8000,  src:'est',    bucket:'site', noMult:true },
+    { name:'Main services to site (sewer, water, gas, power mains)', cost:()=>12000, src:'est', bucket:'site', noMult:true },
+    { name:'Shared driveway & turning area slab',         cost:()=>25000,         src:'est',    bucket:'site' },
+    { name:'Individual stormwater — house drain to main pit', cost:({u})=>u*1800, src:'est',    bucket:'unit' },
+    { name:'Individual sewer connection — house to main', cost:({u})=>u*1500,     src:'est',    bucket:'unit' },
+    { name:'Individual utility connections (water, gas, power to dwelling)', cost:({u})=>u*2500, src:'est', bucket:'unit' },
+  ]},
+  { id:'s2', num:'03', name:'Concrete & foundations', bucket:'mixed', items:[
+    { name:'Concrete stumps — supply & install',          cost:({u})=>u*12000,    src:'actual', bucket:'unit', foundationTypes:['stump','both'] },
+    { name:'Bearers & floor joists',                      cost:({u})=>u*8000,     src:'actual', bucket:'unit', foundationTypes:['stump','both'] },
+    { name:'Garage slab per dwelling',                    cost:({u})=>u*4500,     src:'est',    bucket:'unit', foundationTypes:['stump','both'] },
+    { name:'House & garage slab per dwelling',            cost:({u})=>u*18000,    src:'est',    bucket:'unit', foundationTypes:['slab'] },
+    { name:'Site slab — paths & common areas',            cost:()=>8000,          src:'est',    bucket:'site', foundationTypes:['slab'] },
+    { name:'Concrete pump hire',                          cost:({u})=>u*800,      src:'est',    bucket:'unit' },
+  ]},
+  { id:'s3', num:'04', name:'Frame & structure', bucket:'unit', items:[
+    { name:'Structural steel (beams, columns)',            cost:({u,g})=>u*g*0.08*180, src:'est',    bucket:'unit', estQty:({u,g})=>Math.round(u*g*0.08), estRate:180 },
+    { name:'Wall framing — ground floor',                 cost:({u,g})=>u*g*0.35*180, src:'actual', bucket:'unit', estQty:({u,g})=>Math.round(u*g*0.35), estRate:180 },
+    { name:'Wall framing — upper floor(s)',               cost:({u,g})=>u*g*0.30*180, src:'actual', bucket:'unit', estQty:({u,g})=>Math.round(u*g*0.30), estRate:180 },
+    { name:'Upper floor decking / particle board',        cost:({u,g})=>u*g*0.10*180, src:'est',    bucket:'unit', estQty:({u,g})=>Math.round(u*g*0.10), estRate:180 },
+    { name:'Roof framing & trusses',                      cost:({u,g})=>u*g*0.12*180, src:'actual', bucket:'unit', estQty:({u,g})=>Math.round(u*g*0.12), estRate:180 },
+    { name:'Bracing & tie-downs',                         cost:({u,g})=>u*g*0.05*180, src:'est',    bucket:'unit', estQty:({u,g})=>Math.round(u*g*0.05), estRate:180 },
+    { name:'Termite protection — chemical barrier',       cost:({u})=>u*1800,     src:'est',    bucket:'unit' },
+    { name:'Termite protection — physical barrier / collars', cost:({u})=>u*800,  src:'est',    bucket:'unit' },
+    { name:'Frame inspection',                            cost:({u})=>u*600,      src:'est',    bucket:'unit' },
+  ]},
+  { id:'s4', num:'05', name:'Roofing & lock-up', bucket:'unit', items:[
+    { name:'Roof sarking & battens',                      cost:({u})=>u*2500,     src:'est',    bucket:'unit' },
+    { name:'Roof tiles / metal cladding',                 cost:({u})=>u*8000,     src:'actual', bucket:'unit' },
+    { name:'Ridge capping & flashings',                   cost:({u})=>u*1500,     src:'est',    bucket:'unit' },
+    { name:'Guttering & downpipes',                       cost:({u})=>u*2500,     src:'actual', bucket:'unit' },
+    { name:'Fascia & eaves lining',                       cost:({u})=>u*4000,     src:'actual', bucket:'unit' },
+    { name:'External wall cladding / brickwork',          cost:({u})=>u*21500,    src:'actual', bucket:'unit' },
+    { name:'Brick ties & lintels',                        cost:({u})=>u*1500,     src:'est',    bucket:'unit' },
+    { name:'External windows supply',                     cost:({u})=>u*7000,     src:'actual', bucket:'unit' },
+    { name:'External windows install',                    cost:({u})=>u*2500,     src:'actual', bucket:'unit' },
+    { name:'External doors supply & install',             cost:({u})=>u*4000,     src:'actual', bucket:'unit' },
+    { name:'Garage doors',                                cost:({u})=>u*2500,     src:'est',    bucket:'unit' },
+  ]},
+  { id:'s5', num:'06', name:'Rough-in services', bucket:'unit', items:[
+    { name:'Plumbing rough-in (drainage, water supply)',  cost:({u})=>u*10000,    src:'actual', bucket:'unit' },
+    { name:'Electrical rough-in (cabling, switchboard)',  cost:({u})=>u*11000,    src:'actual', bucket:'unit' },
+    { name:'Gas rough-in',                                cost:({u})=>u*2000,     src:'est',    bucket:'unit' },
+    { name:'Ducted heating / cooling rough-in',           cost:({u})=>u*3500,     src:'est',    bucket:'unit' },
+    { name:'Solar / battery rough-in (if applicable)',    cost:({u})=>u*1500,     src:'est',    bucket:'unit' },
+    { name:'Data & communications cabling',               cost:({u})=>u*1200,     src:'est',    bucket:'unit' },
+  ]},
+  { id:'s6', num:'07', name:'Insulation & waterproofing', bucket:'unit', items:[
+    { name:'Wall insulation batts',                       cost:({u,g})=>u*g*4.5,  src:'est',    bucket:'unit', estQty:({u,g})=>Math.round(u*g), estRate:4.5 },
+    { name:'Ceiling insulation batts',                    cost:({u,g})=>u*g*3.5,  src:'est',    bucket:'unit', estQty:({u,g})=>Math.round(u*g), estRate:3.5 },
+    { name:'Underfloor insulation',                       cost:({u,g})=>u*g*2.5,  src:'est',    bucket:'unit', estQty:({u,g})=>Math.round(u*g), estRate:2.5 },
+    { name:'Wet area waterproofing — bathrooms',          cost:({u})=>u*1800,     src:'est',    bucket:'unit' },
+    { name:'Wet area waterproofing — laundry',            cost:({u})=>u*600,      src:'est',    bucket:'unit' },
+    { name:'Balcony / deck waterproofing',                cost:({u})=>u*1200,     src:'est',    bucket:'unit' },
+  ]},
+  { id:'s7', num:'08', name:'Linings & plasterboard', bucket:'unit', items:[
+    { name:'Internal wall plasterboard — ground floor',   cost:({u,g})=>u*g*0.5*14,  src:'est', bucket:'unit', estQty:({u,g})=>Math.round(u*g*0.5), estRate:14 },
+    { name:'Internal wall plasterboard — upper floor(s)', cost:({u,g})=>u*g*0.45*14, src:'est', bucket:'unit', estQty:({u,g})=>Math.round(u*g*0.45), estRate:14 },
+    { name:'Ceiling plasterboard',                        cost:({u,g})=>u*g*0.5*12,  src:'est', bucket:'unit', estQty:({u,g})=>Math.round(u*g*0.5), estRate:12 },
+    { name:'Wet area fibre cement sheeting',              cost:({u})=>u*1800,     src:'est',    bucket:'unit' },
+    { name:'Plasterboard stopping & set',                 cost:({u,g})=>u*g*8,   src:'est',    bucket:'unit', estQty:({u,g})=>Math.round(u*g), estRate:8 },
+    { name:'Internal stairs — structure',                 cost:({u})=>u*3500,     src:'est',    bucket:'unit' },
+    { name:'Internal stairs — balustrades',               cost:({u})=>u*2500,     src:'est',    bucket:'unit' },
+  ]},
+  { id:'s8', num:'09', name:'Kitchen & joinery', bucket:'unit', items:[
+    { name:'Kitchen cabinetry supply & install',          cost:({u})=>u*12000,    src:'actual', bucket:'unit' },
+    { name:'Stone / laminate benchtops',                  cost:({u})=>u*4500,     src:'actual', bucket:'unit' },
+    { name:'Splashback (tile or glass)',                   cost:({u})=>u*3500,     src:'actual', bucket:'unit' },
+    { name:'Appliances supply & install',                 cost:({u})=>u*8000,     src:'actual', bucket:'unit' },
+    { name:'Laundry joinery & tub',                       cost:({u})=>u*2500,     src:'est',    bucket:'unit' },
+    { name:'Wardrobe joinery — all bedrooms',             cost:({u})=>u*5000,     src:'est',    bucket:'unit' },
+    { name:'Linen / storage joinery',                     cost:({u})=>u*1800,     src:'est',    bucket:'unit' },
+    { name:'Bathroom vanities',                           cost:({u})=>u*3500,     src:'est',    bucket:'unit' },
+  ]},
+  { id:'s9', num:'10', name:'Tiling', bucket:'unit', items:[
+    { name:'Floor tiles — bathroom(s)',                   cost:({u})=>u*2800,     src:'actual', bucket:'unit' },
+    { name:'Wall tiles — bathroom(s)',                    cost:({u})=>u*2200,     src:'actual', bucket:'unit' },
+    { name:'Floor tiles — ensuite(s)',                    cost:({u})=>u*2000,     src:'actual', bucket:'unit' },
+    { name:'Wall tiles — ensuite(s)',                     cost:({u})=>u*1800,     src:'actual', bucket:'unit' },
+    { name:'Laundry floor & wall tiles',                  cost:({u})=>u*800,      src:'actual', bucket:'unit' },
+    { name:'Entry / alfresco floor tiles',                cost:({u})=>u*400,      src:'actual', bucket:'unit' },
+    { name:'Tile grout & silicone',                       cost:({u})=>u*500,      src:'est',    bucket:'unit' },
+  ]},
+  { id:'s10', num:'11', name:'Fix-out & fit-off', bucket:'unit', items:[
+    { name:'Fix-out plumbing (fixtures, tapware, toilets)', cost:({u})=>u*8000,   src:'actual', bucket:'unit' },
+    { name:'Fix-out electrical (GPOs, switches, lights)',   cost:({u})=>u*6000,   src:'est',    bucket:'unit' },
+    { name:'Ducted heating / cooling fix-out',            cost:({u})=>u*4500,     src:'est',    bucket:'unit' },
+    { name:'Internal doors supply',                       cost:({u})=>u*3000,     src:'est',    bucket:'unit' },
+    { name:'Internal doors hang & hardware',              cost:({u})=>u*2000,     src:'est',    bucket:'unit' },
+    { name:'Skirting boards & architraves',               cost:({u})=>u*2500,     src:'est',    bucket:'unit' },
+    { name:'Painting — internal walls & ceilings',        cost:({u})=>u*14000,    src:'actual', bucket:'unit' },
+    { name:'Painting — external',                         cost:({u})=>u*3000,     src:'est',    bucket:'unit' },
+    { name:'Mirror & shower screens',                     cost:({u})=>u*2800,     src:'est',    bucket:'unit' },
+    { name:'Towel rails & bathroom accessories',          cost:({u})=>u*800,      src:'est',    bucket:'unit' },
+    { name:'Flyscreens & window hardware',                cost:({u})=>u*1200,     src:'est',    bucket:'unit' },
+  ]},
+  { id:'s11', num:'12', name:'Flooring', bucket:'unit', items:[
+    { name:'Engineered timber / laminate — living areas', cost:({u})=>u*5000,     src:'actual', bucket:'unit' },
+    { name:'Engineered timber / laminate — bedrooms',     cost:({u})=>u*3000,     src:'actual', bucket:'unit' },
+    { name:'Carpet — bedrooms (if applicable)',           cost:({u})=>u*1500,     src:'est',    bucket:'unit' },
+    { name:'Floor prep & levelling compound',             cost:({u})=>u*500,      src:'est',    bucket:'unit' },
+    { name:'Threshold strips & transitions',              cost:({u})=>u*200,      src:'est',    bucket:'unit' },
+  ]},
+  { id:'s12', num:'13', name:'External works & landscaping', bucket:'unit', items:[
+    { name:'Individual garage apron & front path',        cost:({u})=>u*1800,     src:'est',    bucket:'unit' },
+    { name:'Shared driveway sealing / line marking',      cost:()=>6000,          src:'est',    bucket:'site' },
+    { name:'Alfresco / outdoor paving',                   cost:({u})=>u*4000,     src:'actual', bucket:'unit' },
+    { name:'Fencing — side & rear boundary',              cost:({u})=>u*5000,     src:'actual', bucket:'unit' },
+    { name:'Front fencing / feature fence',               cost:({u})=>u*2500,     src:'actual', bucket:'unit' },
+    { name:'Letterbox & address numbers',                 cost:({u})=>u*500,      src:'est',    bucket:'unit' },
+    { name:'Landscaping — turf & garden beds',            cost:({u})=>u*3000,     src:'actual', bucket:'unit' },
+    { name:'Irrigation system (if applicable)',           cost:({u})=>u*800,      src:'est',    bucket:'unit' },
+    { name:'External lighting',                           cost:({u})=>u*700,      src:'est',    bucket:'unit' },
+    { name:'Clotheslines',                                cost:({u})=>u*300,      src:'est',    bucket:'unit' },
+  ]},
+  { id:'s13', num:'14', name:'Builder margin & contingency', bucket:'mixed', items:[
+    { name:'Builders margin & overheads — unit costs',    cost:(p,sub)=>sub.unit*0.10,           src:'est', bucket:'unit', noMult:true },
+    { name:'Builders margin & overheads — site costs',    cost:(p,sub)=>sub.site*0.10,           src:'est', bucket:'site', noMult:true },
+    { name:'Project management fee',                      cost:(p,sub)=>(sub.unit+sub.site)*0.03, src:'est', bucket:'site', noMult:true },
+    { name:'Occupancy permit & final inspection',         cost:({u})=>u*1200,                    src:'est', bucket:'unit', noMult:true },
+    { name:'Construction contingency — unit (5%)',        cost:(p,sub)=>sub.unit*0.05,           src:'est', bucket:'unit', noMult:true },
+    { name:'Construction contingency — site (5%)',        cost:(p,sub)=>sub.site*0.05,           src:'est', bucket:'site', noMult:true },
+  ]},
+];
+
+// ── STATE ─────────────────────────────────────────────────────────────────────
+let itemOrders = {};
+let openStages = {};
+let saveTimer = null;
+let dragSid = null, dragIdx = null;
+
+// ── HELPERS ───────────────────────────────────────────────────────────────────
+function fmt(n){ return '$'+Math.round(n).toLocaleString('en-AU'); }
+function fmtN(n){ return Math.round(n).toLocaleString('en-AU'); }
+function pf(v){ return parseFloat(String(v).replace(/[^0-9.]/g,''))||0; }
+
+function getSettings(){
+  return {
+    u:+document.getElementById('units').value||4,
+    g:+document.getElementById('gfa').value||160,
+    storeys:+document.getElementById('storeys').value||2,
+    foundation:document.getElementById('foundation').value,
+    state:+document.getElementById('state').value||1.05,
+    siteMult:+document.getElementById('site').value||1.0,
+  };
+}
+
+function resolveAmt(obj){
+  if(obj.qty>0 && obj.rate>0) return Math.round(obj.qty * obj.rate);
+  if(obj.lump>0) return obj.lump;
+  return null;
+}
+
+function getBaseEst(item, p, sub){
+  if(!item.costFn) return 0;
+  const raw = item.costFn(p, sub);
+  if(raw==null||isNaN(raw)) return 0;
+  // Don't apply location multipliers to fixed fees or percentage-of-subtotal items
+  if(item.noMult) return Math.round(raw);
+  return Math.round(raw * p.state * p.siteMult);
+}
+
+function getEstTotal(item, p, sub){
+  const r = resolveAmt(item.est);
+  return r!=null ? r : getBaseEst(item, p, sub);
+}
+
+function getQuoteTotal(item){ return resolveAmt(item.quote); }
+function isQuoted(item){ const q=item.quote; return (q.qty>0&&q.rate>0)||q.lump>0; }
+function getEffective(item, p, sub){ const q=getQuoteTotal(item); return q!=null?q:getEstTotal(item,p,sub); }
+
+// Get item's bucket — custom items default to stage bucket
+function itemBucket(item, stageDef){
+  if(item.isCustom) return stageDef.bucket==='site'?'site':'unit';
+  const defItem = stageDef&&stageDef.items.find(d=>d.name===item.name);
+  return defItem?defItem.bucket||stageDef.bucket:stageDef.bucket;
+}
+
+function buildDefaultOrder(sid, p){
+  const stageDef=STAGE_DEFS.find(s=>s.id===sid);
+  if(!stageDef) return [];
+  return stageDef.items
+    .filter(item=>{
+      if(p.storeys===1){ const n=item.name.toLowerCase(); if(n.includes('upper floor')||n.includes('stair')) return false; }
+      if(item.foundationTypes&&!item.foundationTypes.includes(p.foundation)) return false;
+      return true;
+    })
+    .map(item=>{
+      const eQty = item.estQty ? Math.round(item.estQty(p)*10)/10 : 0;
+      const eRate = item.estRate || 0;
+      return {name:item.name,isCustom:false,src:item.src,costFn:item.cost,noMult:!!item.noMult,est:{qty:eQty,rate:eRate,lump:0},quote:{qty:0,rate:0,lump:0}};
+    });
+}
+
+function initItemOrders(p){
+  STAGE_DEFS.forEach(st=>{ if(!itemOrders[st.id]) itemOrders[st.id]=buildDefaultOrder(st.id,p); });
+}
+
+function getOrderedItems(sid, p){
+  return (itemOrders[sid]||buildDefaultOrder(sid,p)).filter(item=>{
+    if(p.storeys===1){ const n=item.name.toLowerCase(); if(n.includes('upper floor')||n.includes('stair')) return false; }
+    if(!item.isCustom){
+      const stageDef=STAGE_DEFS.find(s=>s.id===sid);
+      const defItem=stageDef&&stageDef.items.find(d=>d.name===item.name);
+      if(defItem&&defItem.foundationTypes&&!defItem.foundationTypes.includes(p.foundation)) return false;
+    }
+    return true;
+  });
+}
+
+// Calc subtotals by bucket (excluding margin stage s13)
+function calcSubtotals(p, itemMap){
+  let siteSub=0, unitSub=0;
+  STAGE_DEFS.filter(st=>st.id!=='s13').forEach(st=>{
+    const stageDef=STAGE_DEFS.find(s=>s.id===st.id);
+    (itemMap[st.id]||[]).forEach(item=>{
+      const bucket=itemBucket(item,stageDef);
+      const est=getEstTotal(item,p,{site:0,unit:0});
+      if(bucket==='site') siteSub+=est; else unitSub+=est;
+    });
+  });
+  return {site:siteSub, unit:unitSub};
+}
+
+// ── PERSISTENCE ───────────────────────────────────────────────────────────────
+function saveData(){
+  const toSave={};
+  Object.keys(itemOrders).forEach(sid=>{
+    toSave[sid]=itemOrders[sid].map(({name,isCustom,src,est,quote})=>({name,isCustom,src,est,quote}));
+  });
+  try{ localStorage.setItem('atl_orders_v7',JSON.stringify(toSave)); }catch(e){}
+  try{
+    localStorage.setItem('atl_settings_v2',JSON.stringify({
+      units:document.getElementById('units').value,
+      gfa:document.getElementById('gfa').value,
+      storeys:document.getElementById('storeys').value,
+      foundation:document.getElementById('foundation').value,
+      state:document.getElementById('state').value,
+      site:document.getElementById('site').value,
+    }));
+  }catch(e){}
+  const ind=document.getElementById('save-indicator');
+  ind.classList.add('show');
+  clearTimeout(saveTimer);
+  saveTimer=setTimeout(()=>ind.classList.remove('show'),2000);
+}
+
+function loadData(){
+  try{
+    const saved=JSON.parse(localStorage.getItem('atl_orders_v7')||'{}');
+    Object.keys(saved).forEach(sid=>{
+      const stageDef=STAGE_DEFS.find(s=>s.id===sid);
+      itemOrders[sid]=saved[sid].map(si=>{
+        const defItem=stageDef&&stageDef.items.find(d=>d.name===si.name);
+        return{name:si.name,isCustom:si.isCustom,src:si.src||'est',costFn:defItem?defItem.cost:()=>0,noMult:defItem?!!defItem.noMult:false,est:si.est||{qty:0,rate:0,lump:0},quote:si.quote||{qty:0,rate:0,lump:0}};
+      });
+    });
+  }catch(e){ itemOrders={}; }
+  try{
+    const s=JSON.parse(localStorage.getItem('atl_settings_v2')||'{}');
+    if(s.units) document.getElementById('units').value=s.units;
+    if(s.gfa) document.getElementById('gfa').value=s.gfa;
+    if(s.storeys) document.getElementById('storeys').value=s.storeys;
+    if(s.foundation) document.getElementById('foundation').value=s.foundation;
+    if(s.state) document.getElementById('state').value=s.state;
+    if(s.site) document.getElementById('site').value=s.site;
+  }catch(e){}
+}
+
+// ── ACTIONS ───────────────────────────────────────────────────────────────────
+function resetAll(){
+  if(!confirm('Reset all data? This cannot be undone.')) return;
+  itemOrders={};
+  initItemOrders(getSettings());
+  saveData(); render();
+}
+
+function setField(sid,idx,side,field,val){
+  const v=pf(val);
+  itemOrders[sid][idx][side][field]=v;
+  saveData(); render();
+}
+
+function addItem(sid,e){
+  e&&e.stopPropagation();
+  const input=document.getElementById('new-item-'+sid);
+  const name=input.value.trim(); if(!name) return;
+  if(!itemOrders[sid]) itemOrders[sid]=buildDefaultOrder(sid,getSettings());
+  itemOrders[sid].push({name,isCustom:true,src:'custom',costFn:()=>0,est:{qty:0,rate:0,lump:0},quote:{qty:0,rate:0,lump:0}});
+  input.value=''; openStages[sid]=true;
+  saveData(); render();
+}
+
+function removeItem(sid,idx,e){
+  e&&e.stopPropagation();
+  if(!itemOrders[sid]) return;
+  itemOrders[sid].splice(idx,1);
+  openStages[sid]=true;
+  saveData(); render();
+}
+
+function handleAddKey(sid,e){ if(e.key==='Enter') addItem(sid,e); }
+function toggleStage(id){ openStages[id]=!openStages[id]; render(); }
+
+function onDragStart(e,sid,idx){ dragSid=sid;dragIdx=idx;e.dataTransfer.effectAllowed='move';e.target.closest('tr').classList.add('dragging'); }
+function onDragEnd(){ document.querySelectorAll('.dragging,.drag-over').forEach(el=>el.classList.remove('dragging','drag-over')); }
+function onDragOver(e,sid,idx){ e.preventDefault();if(dragSid!==sid)return;document.querySelectorAll('.drag-over').forEach(el=>el.classList.remove('drag-over'));const tr=e.target.closest('tr');if(tr)tr.classList.add('drag-over'); }
+function onDrop(e,sid,toIdx){
+  e.preventDefault();
+  if(dragSid!==sid||dragIdx===null||dragIdx===toIdx)return;
+  const items=itemOrders[sid];
+  const moved=items.splice(dragIdx,1)[0];
+  items.splice(dragIdx<toIdx?toIdx-1:toIdx,0,moved);
+  dragIdx=null;dragSid=null;openStages[sid]=true;
+  saveData();render();
+}
+
+// ── RENDER ────────────────────────────────────────────────────────────────────
+function render(){
+  const p=getSettings();
+  initItemOrders(p);
+
+  const itemMap={};
+  STAGE_DEFS.forEach(st=>{ itemMap[st.id]=getOrderedItems(st.id,p); });
+
+  // First pass: subtotals excluding margin stage for margin calc
+  const sub=calcSubtotals(p,itemMap);
+
+  // Second pass: full totals including margin stage
+  let totalEstSite=0,totalEstUnit=0,totalQuoteSite=0,totalQuoteUnit=0;
+  let quotedCount=0,totalItems=0;
+
+  STAGE_DEFS.forEach(st=>{
+    const stageDef=STAGE_DEFS.find(s=>s.id===st.id);
+    itemMap[st.id].forEach(item=>{
+      totalItems++;
+      const bucket=itemBucket(item,stageDef);
+      const est=getEstTotal(item,p,sub);
+      const quoted=isQuoted(item);
+      const qAmt=quoted?getQuoteTotal(item):0;
+      if(bucket==='site'){ totalEstSite+=est; if(quoted) totalQuoteSite+=qAmt; }
+      else { totalEstUnit+=est; if(quoted) totalQuoteUnit+=qAmt; }
+      if(quoted) quotedCount++;
+    });
+  });
+
+  const grandEst=totalEstSite+totalEstUnit;
+  const grandQuote=totalQuoteSite+totalQuoteUnit;
+  const pct=totalItems?Math.round(quotedCount/totalItems*100):0;
+  const gfa=p.u*p.g;
+  const perUnitEst=p.u>0?totalEstUnit/p.u:0;
+  const perUnitQuote=p.u>0?totalQuoteUnit/p.u:0;
+  const sqmEst=gfa>0?grandEst/gfa:0;
+  const sqmQuote=gfa>0?grandQuote/gfa:0;
+
+  // ── METRICS ──
+  document.getElementById('metrics').innerHTML=`
+    <div class="metric-card accent">
+      <div class="mlabel">Total estimate</div>
+      <div class="mval">${fmt(grandEst)}</div>
+      <div class="msub">${p.u} units · ${Math.round(gfa).toLocaleString()} m² total</div>
+    </div>
+    <div class="metric-card">
+      <div class="mlabel">Per unit (ex site)</div>
+      <div class="mval">${fmt(perUnitEst)}</div>
+      <div class="msub">${p.g} m² · ${fmt(sqmEst)}/m²</div>
+    </div>
+    <div class="metric-card">
+      <div class="mlabel">Site costs</div>
+      <div class="mval">${fmt(totalEstSite)}</div>
+      <div class="msub">${fmt(totalEstSite/p.u)} per unit share</div>
+    </div>
+    <div class="metric-card">
+      <div class="mlabel">Quotes progress</div>
+      <div class="mval">${pct}%</div>
+      <div class="msub">${quotedCount} of ${totalItems} items</div>
+    </div>`;
+
+  // ── STAGES ──
+  const container=document.getElementById('stages-container');
+  container.innerHTML='';
+
+  STAGE_DEFS.forEach(st=>{
+    const stageDef=STAGE_DEFS.find(s=>s.id===st.id);
+    const items=itemMap[st.id];
+    let stEstSite=0,stEstUnit=0,stQuoteSite=0,stQuoteUnit=0;
+    items.forEach(item=>{
+      const bk=itemBucket(item,stageDef);
+      const est=getEstTotal(item,p,sub);
+      const quoted=isQuoted(item);
+      const qAmt=quoted?getQuoteTotal(item):0;
+      if(bk==='site'){stEstSite+=est;if(quoted)stQuoteSite+=qAmt;}
+      else{stEstUnit+=est;if(quoted)stQuoteUnit+=qAmt;}
+    });
+    const stEst=stEstSite+stEstUnit;
+    const stQuote=stQuoteSite+stQuoteUnit;
+    const stVar=stQuote>0?stQuote-stEst:0;
+    const quotedInStage=items.filter(i=>isQuoted(i)).length;
+    const isOpen=!!openStages[st.id];
+    const stagePct=items.length?Math.round(quotedInStage/items.length*100):0;
+
+    // Stage type for colour
+    const allBuckets=new Set(items.map(item=>itemBucket(item,stageDef)));
+    const stageType=allBuckets.size>1?'mixed':allBuckets.has('site')?'site':'unit';
+
+    const rows=items.map((item,i)=>{
+      const bk=itemBucket(item,stageDef);
+      const baseEst=getBaseEst(item,p,sub);
+      const estTotal=getEstTotal(item,p,sub);
+      const qTotal=getQuoteTotal(item);
+      const isQ=isQuoted(item);
+      const varAmt=qTotal!=null?qTotal-estTotal:0;
+      const eQty=item.est.qty||0,eRate=item.est.rate||0,eLump=item.est.lump||(eQty>0&&eRate>0?0:baseEst);
+      const qQty=item.quote.qty||0,qRate=item.quote.rate||0,qLump=item.quote.lump||0;
+      const srcBadge=item.isCustom?`<span class="tag tag-custom">custom</span>`:'';
+      const quotedBadge=isQ?`<span class="tag tag-quoted">✓ quoted</span>`:'';
+      const varHtml=qTotal!=null?`<div class="variance ${varAmt>0?'over':'under'}">${varAmt>=0?'+':''}${fmt(varAmt)}</div>`:'';
+
+      return`<tr class="${isQ?'is-quoted':''}"
+        draggable="true"
+        ondragstart="onDragStart(event,'${st.id}',${i})"
+        ondragend="onDragEnd()"
+        ondragover="onDragOver(event,'${st.id}',${i})"
+        ondrop="onDrop(event,'${st.id}',${i})">
+        <td class="col-drag" title="Drag to reorder">⠿</td>
+        <td class="col-name">
+          <div class="item-name-wrap">
+            <span class="row-type ${bk}">${bk}</span>
+            ${item.name}${srcBadge}${quotedBadge}
+          </div>
+        </td>
+        <td class="td-est">
+          <div class="cell-group">
+            <div class="cell-row">
+              <input class="fi fi-qty" value="${eQty||''}" placeholder="qty"
+                onblur="setField('${st.id}',${i},'est','qty',this.value)"
+                onfocus="this.select()" onclick="event.stopPropagation()">
+              <span class="fi-sep">×</span>
+              <input class="fi fi-rate" value="${eRate||''}" placeholder="rate"
+                onblur="setField('${st.id}',${i},'est','rate',this.value)"
+                onfocus="this.select()" onclick="event.stopPropagation()">
+            </div>
+            <div class="cell-row">
+              <span class="fi-sep" style="font-size:10px;margin-right:2px">or lump</span>
+              <input class="fi fi-total" value="${eLump>0?fmtN(eLump):''}" placeholder="${fmtN(baseEst)}"
+                onblur="setField('${st.id}',${i},'est','lump',this.value)"
+                onfocus="this.select();this.value=eLump>0?eLump:''" onclick="event.stopPropagation()">
+            </div>
+            <div class="cell-total">${fmt(estTotal)}</div>
+          </div>
+        </td>
+        <td class="td-quote">
+          <div class="cell-group">
+            <div class="cell-row">
+              <input class="fi fi-qty fi-green" value="${qQty||''}" placeholder="qty"
+                onblur="setField('${st.id}',${i},'quote','qty',this.value)"
+                onfocus="this.select()" onclick="event.stopPropagation()">
+              <span class="fi-sep">×</span>
+              <input class="fi fi-rate fi-green" value="${qRate||''}" placeholder="rate"
+                onblur="setField('${st.id}',${i},'quote','rate',this.value)"
+                onfocus="this.select()" onclick="event.stopPropagation()">
+            </div>
+            <div class="cell-row">
+              <span class="fi-sep" style="font-size:10px;margin-right:2px">or lump</span>
+              <input class="fi fi-total fi-green" value="${qLump>0?fmtN(qLump):''}" placeholder="enter quote…"
+                onblur="setField('${st.id}',${i},'quote','lump',this.value)"
+                onfocus="this.select();this.value=qLump>0?qLump:''" onclick="event.stopPropagation()">
+            </div>
+            <div class="cell-group" style="flex-direction:row;gap:6px;align-items:center">
+              <div class="cell-total is-green">${isQ?fmt(qTotal):'-'}</div>
+              ${varHtml}
+            </div>
+          </div>
+        </td>
+        <td class="col-act">
+          <button class="btn-remove-item" onclick="removeItem('${st.id}',${i},event)" title="Delete">×</button>
+        </td>
+      </tr>`;
+    }).join('');
+
+    const stVarHtml=quotedInStage>0&&stVar!==0
+      ?`<span class="sf-variance ${stVar>0?'over':'under'}">${stVar>=0?'+':''}${fmt(stVar)}</span>`:'';
+
+    const block=document.createElement('div');
+    block.className=`stage-block ${stageType==='site'?'is-site':stageType==='mixed'?'is-mixed':''}`;
+    block.innerHTML=`
+      <div class="stage-header" onclick="toggleStage('${st.id}')">
+        <div class="stage-num">${st.num}</div>
+        <span class="stage-type-pill ${stageType}">${stageType}</span>
+        <div class="stage-name">${st.name}</div>
+        <div class="stage-meta">
+          <span class="stage-prog">${quotedInStage}/${items.length}</span>
+          <span class="stage-total">${fmt(quotedInStage>0?stQuote:stEst)}</span>
+          <span class="stage-chev ${isOpen?'open':''}">▾</span>
+        </div>
+      </div>
+      <div class="stage-progress-line"><div class="stage-progress-fill" style="width:${stagePct}%"></div></div>
+      <div class="stage-body ${isOpen?'open':''}">
+        <table class="items-table">
+          <thead>
+            <tr class="hdr-top">
+              <th class="col-drag"></th>
+              <th class="col-name">Line item</th>
+              <th class="th-est">Estimate</th>
+              <th class="th-quote">Quoted</th>
+              <th class="col-act"></th>
+            </tr>
+            <tr class="hdr-sub">
+              <th class="col-drag"></th>
+              <th class="col-name"></th>
+              <th class="sub-est">qty × rate / lump → total</th>
+              <th class="sub-q">qty × rate / lump → total</th>
+              <th class="col-act"></th>
+            </tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>
+        <div class="add-item-row">
+          <input class="add-item-input" id="new-item-${st.id}" type="text" placeholder="Add a line item…" onkeydown="handleAddKey('${st.id}',event)" onclick="event.stopPropagation()">
+          <button class="btn-add-item" onclick="addItem('${st.id}',event)">+ Add</button>
+        </div>
+        <div class="stage-footer">
+          <div class="sf-group">
+            <span class="sf-label">Estimate</span><span class="sf-val">${fmt(stEst)}</span>
+            ${stEstSite>0&&stEstUnit>0?`<span class="sf-label">(${fmt(stEstSite)} site · ${fmt(stEstUnit)} unit)</span>`:''}
+            ${quotedInStage>0?`<span class="sf-label" style="margin-left:12px">Quoted</span><span class="sf-val green">${fmt(stQuote)}</span>${stVarHtml}`:''}
+          </div>
+        </div>
+      </div>`;
+    container.appendChild(block);
+  });
+
+  // ── RUNNING TOTAL ──
+  const stillToQuote = grandEst - grandQuote;
+  document.getElementById('running-total').innerHTML=`
+    <div class="rt-cell">
+      <div class="rt-label" style="color:var(--sand-light)">Total estimate</div>
+      <div class="rt-val" style="color:var(--white)">${fmt(grandEst)}</div>
+      <div class="rt-sub">${p.u} units · ${fmt(grandEst/p.u)} each</div>
+    </div>
+    <div class="rt-cell">
+      <div class="rt-label" style="color:var(--sand-light)">Quoted so far</div>
+      <div class="rt-val" style="color:#5dd4a0">${fmt(grandQuote)}</div>
+      <div class="rt-sub">${quotedCount} of ${totalItems} items locked in</div>
+    </div>
+    <div class="rt-cell">
+      <div class="rt-label" style="color:var(--sand-light)">Still to quote</div>
+      <div class="rt-val" style="color:${stillToQuote>0?'var(--sand)':'#5dd4a0'}">${fmt(stillToQuote)}</div>
+      <div class="rt-sub">${totalItems-quotedCount} items remaining</div>
+    </div>
+    <div class="rt-cell">
+      <div class="rt-label" style="color:var(--sand-light)">Progress</div>
+      <div class="rt-val" style="color:${pct===100?'#5dd4a0':'var(--white)'}">${pct}%</div>
+      <div class="rt-bar-wrap"><div class="rt-bar-fill" style="width:${pct}%"></div></div>
+    </div>`;
+}
+
+loadData();
+initItemOrders(getSettings());
+document.querySelectorAll('.settings-panel input,.settings-panel select').forEach(el=>el.addEventListener('input',()=>{saveData();render();}));
+render();
+</script>
+</body>
+</html>
